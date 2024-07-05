@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.7">
+<model name='road'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <laser_retro>4</laser_retro>
+          <geometry>
+            <box>
+              <size>150 8.4 0.03</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <laser_retro>4</laser_retro>
+          <geometry>
+            <box>
+              <size>150 8.4 0.03</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Black</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+</sdf>

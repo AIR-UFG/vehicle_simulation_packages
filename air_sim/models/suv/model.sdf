@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="suv">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <laser_retro>65</laser_retro>
+        <pose>0 0 0 0 0 -1.57079632679</pose>
+        <geometry>
+          <mesh>
+            <scale>0.06 0.06 0.06</scale>
+            <uri>model://suv/meshes/suv.obj</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <laser_retro>65</laser_retro>
+        <pose>0 0 0 0 0 -1.57079632679</pose>
+        <geometry>
+          <mesh>
+            <scale>0.06 0.06 0.06</scale>
+            <uri>model://suv/meshes/suv.obj</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

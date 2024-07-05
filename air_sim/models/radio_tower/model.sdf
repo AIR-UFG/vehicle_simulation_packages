@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="radio_tower">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <laser_retro>20</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://radio_tower/meshes/radio_tower.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <laser_retro>20</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://radio_tower/meshes/radio_tower.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
