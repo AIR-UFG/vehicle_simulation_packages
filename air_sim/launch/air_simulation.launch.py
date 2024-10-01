@@ -63,7 +63,7 @@ def generate_launch_description():
         executable='joint_state_publisher',
         name='joint_state_publisher',
     )
-
+    
     gazebo_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -118,6 +118,14 @@ def generate_launch_description():
         name='sd_msgs_to_ackermann',
     )
 
+    # Add a static_transform_publisher for fixed transforms, for example between base_link and another frame
+    static_tf_publisher_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher',
+        arguments=['0', '0', '0', '0', '0', '0', 'velodyne_base_link', 'velodyne'],  # Example values for static transform
+        output='screen'
+    )
     return LaunchDescription([
         rviz_arg,
         declare_world_name_arg,
@@ -128,5 +136,6 @@ def generate_launch_description():
         gazebo_client,
         urdf_spawn_node,
         rviz2_node,
-        sd_msgs_to_ackermann
+        sd_msgs_to_ackermann,
+        static_tf_publisher_node,
     ])

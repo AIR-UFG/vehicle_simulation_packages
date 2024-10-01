@@ -37,7 +37,7 @@ All rights reserved
 
   <!-- Sensors -->
   <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
-  <xacro:VLP-16 parent="chassis" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="5" samples="440" gpu="${gpu}">
+  <xacro:VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="5" samples="440" gpu="${gpu}">
     <origin xyz="-0.681 0 1.445" rpy="0 -${1.5*M_PI/180.0} 0"/>
   </xacro:VLP-16>
 
