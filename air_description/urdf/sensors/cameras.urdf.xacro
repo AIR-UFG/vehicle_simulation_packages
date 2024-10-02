@@ -82,8 +82,8 @@ All rights reserved
                     </noise>
                 </camera>
                 <plugin name="${frlr_prefix}_${lrc_prefix}_camera_controller" filename="libgazebo_ros_camera.so">
-                    <alwaysOn>true</alwaysOn>
-                    <updateRate>0.0</updateRate>
+                    <always_on>true</always_on>
+                    <update_rate>0.0</update_rate>
                     <cameraName>sd_twizy/${frlr_prefix}_${lrc_prefix}_camera</cameraName>
                     <imageTopicName>image_raw</imageTopicName>
                     <cameraInfoTopicName>camera_info</cameraInfoTopicName>
