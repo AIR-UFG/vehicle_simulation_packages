@@ -19,8 +19,10 @@
   <depend>xacro</depend>
   <depend>gazebo_ros</depend>
 
+  <exec_depend>python3</exec_depend>  <!-- Add Python runtime dependency -->
+  <exec_depend>launch_ros</exec_depend>  <!-- If using ROS2 launch files -->
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>
-
 </package>

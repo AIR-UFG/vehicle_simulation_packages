@@ -58,12 +58,6 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_urdf}],
     )
 
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-    )
-
     gazebo_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -105,6 +99,7 @@ def generate_launch_description():
         output='screen',
     )
 
+    
     rviz2_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -112,21 +107,46 @@ def generate_launch_description():
         condition=IfCondition(PythonExpression(["'", LaunchConfiguration('rviz'), "'=='true'"]))
     )
     
+    # Add a node to convert the AckermannDriveStamped message to AckermannDrive
     sd_msgs_to_ackermann = Node(
         package='vehicle_control',
         executable='sd_msgs_to_ackermann.py',
         name='sd_msgs_to_ackermann',
     )
 
+    # Add a static_transform_publisher for fixed transforms, for example between base_link and another frame
+    static_tf_publisher_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher',
+        arguments=[ PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[0]"]),
+                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[1]"]),
+                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[2]"]),
+                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[3]"]),
+                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[4]"]),
+                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[5]"]),
+                    'world', 'odom'],  # Example values for static transform
+        output='screen'
+    )
+    
+    # Add a node to publish the odometry transform from odom to base_link
+    odom_tf_broadcaster_node = Node(
+        package='air_sim',
+        executable='odom_tf_broadcaster.py',
+        name='odom_tf_broadcaster',
+        output='screen'
+    )
+    
     return LaunchDescription([
         rviz_arg,
         declare_world_name_arg,
         declare_robot_pose_arg,
         robot_state_publisher_node,
-        joint_state_publisher_node,
         gazebo_server,
         gazebo_client,
         urdf_spawn_node,
         rviz2_node,
-        sd_msgs_to_ackermann
+        sd_msgs_to_ackermann,
+        static_tf_publisher_node,
+        odom_tf_broadcaster_node,
     ])

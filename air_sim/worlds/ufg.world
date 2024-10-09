@@ -6420,5 +6420,15 @@
       </link>
       <pose>72.719 78.4912 0 0 -0 0</pose>
     </model>
+
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros>
+          <namespace>/world</namespace>
+          <remapping>/model_states:=/model_states</remapping>
+      </ros>
+      <update_rate>1.0</update_rate>
+      <always_on>true</always_on>
+    </plugin> 
+
   </world>
 </sdf>
