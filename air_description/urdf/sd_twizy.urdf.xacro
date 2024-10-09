@@ -38,7 +38,7 @@ All rights reserved
   <!-- Sensors -->
   <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
   <xacro:VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="5" samples="440" gpu="${gpu}">
-    <origin xyz="-0.681 0 1.445" rpy="0 -${1.5*M_PI/180.0} 0"/>
+    <origin xyz="0 0 1.445" rpy="0 -${1.5*M_PI/180.0} 0"/>
   </xacro:VLP-16>
 
   <xacro:blackfly_camera frlr_prefix="front" lrc_prefix="left">
@@ -75,11 +75,10 @@ All rights reserved
 
   <gazebo>
     <plugin name="libgazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
-      <ros>
-          <namespace>p3d</namespace>
+       <ros>
           <remapping>odom:=base_pose_ground_truth</remapping>
         </ros>
-          <frame_name>map</frame_name>
+          <frame_name>world</frame_name>
           <body_name>base_link</body_name>
           <update_rate>200.0</update_rate>
           <gaussian_noise>0.01</gaussian_noise>
@@ -113,6 +112,13 @@ All rights reserved
       <joint_name>rear_right_wheel_joint</joint_name>
       <update_rate>100.0</update_rate>
       <always_on>true</always_on>
+    </plugin>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="bounding_box_plugin" filename="/root/ros2_ws/install/bounding_box_plugin/lib/bounding_box_plugin/libbounding_box_plugin.so">
+      <update_rate>5.0</update_rate>
+      <frame_id>world</frame_id>
     </plugin>
   </gazebo>
 
