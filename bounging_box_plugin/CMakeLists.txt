@@ -11,46 +11,69 @@ find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(gazebo_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(tf2_ros REQUIRED) 
+find_package(tf2_ros REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_srvs REQUIRED)
+
+
+# Add the custom messages and services
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/BoundingBox.msg"
+  "msg/BoundingBoxArray.msg"
+  "srv/BoundingBoxService.srv"
+  DEPENDENCIES geometry_msgs std_msgs
+)
+
+# Ensure ROS messages can be found
+ament_export_dependencies(rosidl_default_runtime)
 
 # Build the plugin as a shared library
-add_library(bounding_box_plugin SHARED src/bounding_box_plugin.cpp)
+add_library(bounding_box_plugin_lib SHARED src/bounding_box_plugin.cpp)
 
 # Include directories
-target_include_directories(bounding_box_plugin PUBLIC
+target_include_directories(bounding_box_plugin_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/rosidl_generator_cpp>  # Add this line for generated headers
+  $<INSTALL_INTERFACE:include>
+)
 
-# Specify the C++ standard
-target_compile_features(bounding_box_plugin PUBLIC c_std_99 cxx_std_17)
+ament_export_dependencies(rosidl_default_runtime std_msgs std_srvs)
 
 # Link against ROS 2 and Gazebo ROS libraries
 ament_target_dependencies(
-  bounding_box_plugin
+  bounding_box_plugin_lib
   rclcpp
   geometry_msgs
   gazebo_ros
   visualization_msgs
   tf2_ros
+  std_msgs
+  std_srvs
+  rosidl_default_runtime
 )
 
+
 # Link Gazebo libraries (if required for your plugin)
-target_link_libraries(bounding_box_plugin
+target_link_libraries(bounding_box_plugin_lib
   ${GAZEBO_LIBRARIES}
 )
 
 # Install the shared library
-install(TARGETS bounding_box_plugin
+install(TARGETS bounding_box_plugin_lib
   LIBRARY DESTINATION lib/${PROJECT_NAME})
+
+# Install the generated messages and services
+install(DIRECTORY msg
+  DESTINATION share/${PROJECT_NAME}/msg
+)
+
+install(DIRECTORY srv
+  DESTINATION share/${PROJECT_NAME}/srv
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # The following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license are added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # The following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license are added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
