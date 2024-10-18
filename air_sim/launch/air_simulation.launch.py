@@ -3,7 +3,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
 import os
 import xacro
@@ -20,30 +20,8 @@ def generate_launch_description():
 
     share_dir = get_package_share_directory('air_description')
     rviz_dir = get_package_share_directory('air_sim')
-
-    # Launch argument for world file
-    world_name = LaunchConfiguration('world_name', default='ufg.world')
-    declare_world_name_arg = DeclareLaunchArgument(
-        'world_name',
-        default_value=world_name,
-        description='Name of the .world file to load'
-    )
     
-    # Declare a single argument for position and orientation (as a vector or tuple)
-    declare_robot_pose_arg = DeclareLaunchArgument(
-        'robot_pose',
-        default_value="6.0, -1.0, 0.3, 0.0, 0.0, 0.0",
-        description='Initial position and orientation of the robot in the format: x, y, z, roll, pitch, yaw'
-    )
-
-    # Path to world file
-    custom_world_file = PathJoinSubstitution([
-        get_package_share_directory('air_sim'),
-        'worlds',
-        LaunchConfiguration('world_name')
-    ])
-    
-    rviz_file = os.path.join(rviz_dir, 'config', 'air.rviz')
+    rviz_file = os.path.join(rviz_dir, 'config', 'odom.rviz')
     xacro_file = os.path.join(share_dir, 'urdf', 'sd_twizy.urdf.xacro')
 
     # Process the xacro file to get the robot's URDF description
@@ -58,95 +36,122 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_urdf}],
     )
 
-    gazebo_server = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('gazebo_ros'),
-                'launch',
-                'gzserver.launch.py',
-            ])
-        ]),
-        launch_arguments={            
-            'pause': 'true',
-            'world': custom_world_file,
-        }.items(),
-    )
-
-    gazebo_client = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('gazebo_ros'),
-                'launch',
-                'gzclient.launch.py',
-            ])
-        ])
-    )
-
-    # Modify the urdf_spawn_node to include position and orientation parameters
-    urdf_spawn_node = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
-        arguments=[
-            '-entity', 'sd_twizy',
-            '-topic', 'robot_description',
-            '-x', PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[0]"]),
-            '-y', PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[1]"]),
-            '-z', PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[2]"]),
-            '-R', PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[3]"]),
-            '-P', PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[4]"]),
-            '-Y', PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[5]"])
-        ],
-        output='screen',
-    )
-
-    
     rviz2_node = Node(
         package='rviz2',
         executable='rviz2',
         arguments=['-d', rviz_file],
         condition=IfCondition(PythonExpression(["'", LaunchConfiguration('rviz'), "'=='true'"]))
     )
-    
-    # Add a node to convert the AckermannDriveStamped message to AckermannDrive
-    sd_msgs_to_ackermann = Node(
-        package='vehicle_control',
-        executable='sd_msgs_to_ackermann.py',
-        name='sd_msgs_to_ackermann',
+        
+    #Nodes to launch
+    velodyne_driver_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('velodyne_driver'), 'launch'),
+            '/velodyne_driver_node-VLP16-launch.py']),
+    )
+    velodyne_transform_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('velodyne_pointcloud'), 'launch'),
+            '/velodyne_transform_node-VLP16-launch.py']),
     )
 
-    # Add a static_transform_publisher for fixed transforms, for example between base_link and another frame
-    static_tf_publisher_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_transform_publisher',
-        arguments=[ PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[0]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[1]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[2]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[3]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[4]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[5]"]),
-                    'world', 'odom'],  # Example values for static transform
-        output='screen'
-    )
+    rtabmap_odom = Node(
+        package='rtabmap_odom', executable='icp_odometry', output='screen',
+        parameters=[{
+            'frame_id':'velodyne',
+            'odom_frame_id':'odom',
+            'wait_for_transform':0.2,
+            'expected_update_rate':15.0,
+            'deskewing':True,
+            # RTAB-Map's internal parameters are strings:
+            'Icp/PointToPlane': 'true',
+            'Icp/Iterations': '10',
+            'Icp/VoxelSize': '0.1',
+            'Icp/Epsilon': '0.001',
+            'Icp/PointToPlaneK': '20',
+            'Icp/PointToPlaneRadius': '0',
+            'Icp/MaxTranslation': '2',
+            'Icp/MaxCorrespondenceDistance': '1',
+            'Icp/Strategy': '1',
+            'Icp/OutlierRatio': '0.7',
+            'Icp/CorrespondenceRatio': '0.01',
+            'Odom/ScanKeyFrameThr': '0.4',
+            'OdomF2M/ScanSubtractRadius': '0.1',
+            'OdomF2M/ScanMaxSize': '15000',
+            'OdomF2M/BundleAdjustment': 'false'
+        }],
+        remappings=[
+            ('scan_cloud', '/velodyne_points')
+        ])
     
-    # Add a node to publish the odometry transform from odom to base_link
-    odom_tf_broadcaster_node = Node(
-        package='air_sim',
-        executable='odom_tf_broadcaster.py',
-        name='odom_tf_broadcaster',
-        output='screen'
+    # rtabmap_slam = Node(
+    #     package='rtabmap_slam', executable='rtabmap', output='screen',
+    #     parameters=[{
+    #         'frame_id':'velodyne',
+    #         'subscribe_depth':False,
+    #         'subscribe_rgb':False,
+    #         'subscribe_scan_cloud':True,
+    #         'approx_sync':False,
+    #         'wait_for_transform':0.2,
+    #         'use_sim_time':False,
+    #         # RTAB-Map's internal parameters are strings:
+    #         'RGBD/ProximityMaxGraphDepth': '0',
+    #         'RGBD/ProximityPathMaxNeighbors': '1',
+    #         'RGBD/AngularUpdate': '0.05',
+    #         'RGBD/LinearUpdate': '0.05',
+    #         'RGBD/CreateOccupancyGrid': 'false',
+    #         'Mem/NotLinkedNodesKept': 'false',
+    #         'Mem/STMSize': '30',
+    #         'Mem/LaserScanNormalK': '20',
+    #         'Reg/Strategy': '1',
+    #         'Icp/VoxelSize': '0.1',
+    #         'Icp/PointToPlaneK': '20',
+    #         'Icp/PointToPlaneRadius': '0',
+    #         'Icp/PointToPlane': 'true',
+    #         'Icp/Iterations': '10',
+    #         'Icp/Epsilon': '0.001',
+    #         'Icp/MaxTranslation': '3',
+    #         'Icp/MaxCorrespondenceDistance': '1',
+    #         'Icp/Strategy': '1',
+    #         'Icp/OutlierRatio': '0.7',
+    #         'Icp/CorrespondenceRatio': '0.2'
+    #     }],
+    #     remappings=[
+    #         ('scan_cloud', 'odom_filtered_input_scan')
+    #     ],
+    #     arguments=[
+    #         '-d' # This will delete the previous database (~/.ros/rtabmap.db)
+    #     ]), 
+        
+    # rtabmap_viz = Node(
+    #     package='rtabmap_viz', executable='rtabmap_viz', output='screen',
+    #     parameters=[{
+    #         'frame_id':'velodyne',
+    #         'odom_frame_id':'odom',
+    #         'subscribe_odom_info':True,
+    #         'subscribe_scan_cloud':True,
+    #         'approx_sync':False,
+    #     }],
+    #     remappings=[
+    #         ('scan_cloud', 'odom_filtered_input_scan')
+    #     ]),
+
+    joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        name='joint_state_publisher',
+        output='screen',
+        parameters=[{'use_gui': 'false'}],
     )
-    
+
     return LaunchDescription([
         rviz_arg,
-        declare_world_name_arg,
-        declare_robot_pose_arg,
         robot_state_publisher_node,
-        gazebo_server,
-        gazebo_client,
-        urdf_spawn_node,
         rviz2_node,
-        sd_msgs_to_ackermann,
-        static_tf_publisher_node,
-        odom_tf_broadcaster_node,
+        velodyne_driver_node,
+        velodyne_transform_node,
+        rtabmap_odom,
+        joint_state_publisher_node,
+        # rtabmap_slam,
+        # rtabmap_viz,
     ])
