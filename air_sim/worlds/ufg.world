@@ -6430,5 +6430,11 @@
       <always_on>true</always_on>
     </plugin> 
 
+    <plugin name="bounding_box_plugin" filename="/root/ros2_ws/install/bounding_box_plugin/lib/bounding_box_plugin/libbounding_box_plugin_lib.so">
+        <update_rate>1.0</update_rate>
+        <frame_id>world</frame_id>
+    </plugin>
+
+
   </world>
 </sdf>
