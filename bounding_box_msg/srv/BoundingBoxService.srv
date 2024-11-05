@@ -1,5 +1,5 @@
 # Request
+string model_name
 ---
-
 # Response
 BoundingBoxArray boxes

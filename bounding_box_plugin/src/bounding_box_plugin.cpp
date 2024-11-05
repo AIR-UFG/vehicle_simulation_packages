@@ -2,12 +2,15 @@
 #include <gazebo/physics/physics.hh>
 #include <gazebo_ros/node.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include "bounding_box_msg/msg/bounding_box_array.hpp"
 #include "bounding_box_msg/srv/bounding_box_service.hpp"
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 namespace gazebo
 {
@@ -37,27 +40,60 @@ namespace gazebo
             // Connect to the world update event
             update_connection_ = event::Events::ConnectWorldUpdateBegin(std::bind(&BoundingBoxPlugin::OnUpdate, this));
 
+            // Subscribe to the Velodyne point cloud topic
+            sub_velodyne_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>(
+                "/velodyne_points", 10, std::bind(&BoundingBoxPlugin::OnVelodynePoints, this, std::placeholders::_1));
+
             last_update_time_ = _world->SimTime().Double();
         }
 
     private:
+        void OnVelodynePoints(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
+        {
+            pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
+            pcl::fromROSMsg(*msg, pcl_cloud);
+
+            // Clear the list of models with points inside their bounding boxes
+            models_with_points_.clear();
+
+            for (auto model : world_->Models())
+            {
+                if (!model) continue;
+
+                ignition::math::AxisAlignedBox bbox = model->BoundingBox();
+
+                // Check if any point lies within the bounding box
+                for (const auto& point : pcl_cloud.points)
+                {
+                    if (bbox.Contains(ignition::math::Vector3d(point.x, point.y, point.z)))
+                    {
+                        models_with_points_.insert(model->GetName());
+                        break; // If at least one point is inside, no need to check further
+                    }
+                }
+            }
+        }
+
         void OnUpdate()
         {
             double current_time = world_->SimTime().Double();
             if (current_time - last_update_time_ < (1.0 / update_rate_)) return;
 
             int id = 0;
-            float color_step = 0.1f; // Step to change colors for each bounding box
+            float color_step = 0.1f;
 
             for (auto model : world_->Models())
             {
-                if (!model) continue; // Skip if model pointer is null
+                if (!model) continue;
 
-                // Get bounding box
-                ignition::math::AxisAlignedBox bbox = model->BoundingBox();
                 std::string model_name = model->GetName();
 
-                // Generate a unique color based on the model's ID
+                // Only process and publish bounding boxes for models with points in their bounding box
+                if (models_with_points_.find(model_name) == models_with_points_.end()) continue;
+
+                ignition::math::AxisAlignedBox bbox = model->BoundingBox();
+
+                // Publish bounding box marker for visualization
                 visualization_msgs::msg::Marker marker;
                 marker.header.stamp = node_->now();
                 marker.header.frame_id = frame_id_;
@@ -72,7 +108,7 @@ namespace gazebo
                 marker.scale.y = bbox.YLength();
                 marker.scale.z = bbox.ZLength();
 
-                // Assign different colors by adjusting RGB values incrementally
+                // Assign different colors
                 marker.color.r = fmod(color_step * id, 1.0f);
                 marker.color.g = fmod(0.5f + color_step * (id + 1), 1.0f);
                 marker.color.b = fmod(0.3f + color_step * (id + 2), 1.0f);
@@ -99,7 +135,9 @@ namespace gazebo
         event::ConnectionPtr update_connection_;
         gazebo_ros::Node::SharedPtr node_;
         rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr pub_marker_;
+        rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_velodyne_;
         std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+        std::unordered_set<std::string> models_with_points_; // Set to store models with points in bounding box
         std::string frame_id_;
         double last_update_time_;
         double update_rate_;

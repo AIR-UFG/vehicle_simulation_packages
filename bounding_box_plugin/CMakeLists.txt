@@ -13,6 +13,8 @@ find_package(gazebo_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(bounding_box_msg REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
 
 # Build the plugin as a shared library
 add_library(bounding_box_plugin_lib SHARED src/bounding_box_plugin.cpp)
@@ -35,6 +37,8 @@ ament_target_dependencies(
   visualization_msgs
   tf2_ros
   bounding_box_msg
+  pcl_ros
+  pcl_conversions
   )
 
 # Link Gazebo libraries (if required for your plugin)
