@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="carro_branco">
+    <static>true</static>
+    <link name="link">
+      <!-- Visual representation -->
+      <visual name="visual">
+        <laser_retro>65</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://carro_branco/meshes/pclToMesh_carro_branco.stl</uri>
+            <scale>5 5 5</scale>
+          </mesh>
+        </geometry>
+        <!-- <material>
+          <ambient>0.5 0.5 0.5 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+        </material> -->
+        <material> <!-- Material/cor da mesh -->
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/White</name>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="collision">
+        <laser_retro>65</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://carro_branco/meshes/pclToMesh_carro_branco.stl</uri>
+            <scale>5 5 5</scale>
+          </mesh>
+        </geometry>
+
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <bounce/>
+          <friction>
+            <torsional>
+              <ode/>
+            </torsional>
+            <ode/>
+          </friction>
+        </surface>
+      </collision>
+    </link>
+  </model>
+</sdf>

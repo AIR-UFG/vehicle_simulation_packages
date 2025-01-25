@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="carro_cinza">
+    <static>true</static>
+    <link name="link">
+      <!-- Visual representation -->
+      <visual name="visual">
+        <laser_retro>65</laser_retro>
+        <!-- <pose>-10.864447 22.429470 5.000000 0 0 -2.114636</pose> - Position and orientation of the parking floor (x, y, z, roll, pitch, yaw) -->
+        <geometry>
+          <mesh>
+            <uri>model://carro_cinza/meshes/pclToMesh_carroCinza.stl</uri>
+            <scale>7 7 7</scale>
+          </mesh>
+        </geometry>
+        <!-- <material>
+          <ambient>0.5 0.5 0.5 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+        </material> -->
+        <material> <!-- Material/cor da mesh -->
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="collision">
+        <laser_retro>65</laser_retro>
+        <pose>0 0 -5 0 0 0</pose> <!-- Position and orientation of the parking floor (x, y, z, roll, pitch, yaw) -->
+        <geometry>
+          <mesh>
+            <uri>model://carro_cinza/meshes/pclToMesh_carroCinza.stl</uri>
+            <scale>7 7 7</scale>
+          </mesh>
+        </geometry>
+
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <bounce/>
+          <friction>
+            <torsional>
+              <ode/>
+            </torsional>
+            <ode/>
+          </friction>
+        </surface>
+      </collision>
+    </link>
+  </model>
+</sdf>

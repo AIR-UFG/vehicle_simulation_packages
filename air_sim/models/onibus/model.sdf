@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="onibus">
+    <!-- This makes the object static -->
+    <static>true</static>
+    <link name="link">
+      <!-- Visual representation -->
+      <pose>0 0 0 0 0 0</pose> <!-- Position and orientation of the parking floor (x, y, z, roll, pitch, yaw) -->
+      <visual name="visual">
+        <laser_retro>55</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://onibus/meshes/pclToMesh_onibus.stl</uri>
+            <scale>5 5 5</scale>
+          </mesh>
+        </geometry>
+
+        <material> <!-- Material/cor da mesh -->
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Yellow</name>
+          </script>
+        </material>
+        <!-- <material>
+          <ambient>0.5 0.5 0.5 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+        </material> -->
+      </visual>
+      <!-- Optional collision representation -->
+      <collision name="collision">
+      <laser_retro>55</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://onibus/meshes/pclToMesh_onibus.stl</uri>
+            <scale>5 5 5</scale>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

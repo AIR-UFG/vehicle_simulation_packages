@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="arvore_05">
+    <!-- This makes the object static -->
+    <static>true</static>
+    <link name="link">
+      <!-- Visual representation -->
+      <visual name="visual">
+      <laser_retro>7</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://arvore_05/meshes/arvore_05.stl</uri>
+            <scale>9 9 9</scale>
+          </mesh>
+        </geometry>
+        <!-- <material>
+          <ambient>0.5 0.5 0.5 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+        </material> -->
+        <material> <!-- Material/cor da mesh -->
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Green</name>
+          </script>
+        </material>
+      </visual>
+      <!-- Optional collision representation -->
+      <collision name="collision">
+      <laser_retro>7</laser_retro>
+        <geometry>
+          <mesh>
+            <uri>model://arvore_05/meshes/arvore_05.stl</uri>
+            <scale>9 9 9</scale>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
