@@ -20,9 +20,11 @@ def generate_launch_description():
 
     share_dir = get_package_share_directory('air_description')
     rviz_dir = get_package_share_directory('air_sim')
+    gps_wpf_dir = get_package_share_directory("nav2_gps_waypoint_follower_demo")
 
-    # Launch argument for world file
-    world_name = LaunchConfiguration('world_name', default='ufg.world')
+    # Launch argument for world file -- alterado para utilizar o sonoma raceway
+    #world_name = LaunchConfiguration('world_name', default='ufg.world')
+    world_name = "sonoma_raceway.world"
     declare_world_name_arg = DeclareLaunchArgument(
         'world_name',
         default_value=world_name,
@@ -32,16 +34,14 @@ def generate_launch_description():
     # Declare a single argument for position and orientation (as a vector or tuple)
     declare_robot_pose_arg = DeclareLaunchArgument(
         'robot_pose',
-        default_value="6.0, -1.0, 0.3, 0.0, 0.0, 0.0",
+        #default_value="6.0, -1.0, 0.3, 0.0, 0.0, 0.0",
+        default_value="0.0, 0.0, 0.0, 0.0, 0.0, 0.0",
         description='Initial position and orientation of the robot in the format: x, y, z, roll, pitch, yaw'
     )
 
-    # Path to world file
-    custom_world_file = PathJoinSubstitution([
-        get_package_share_directory('air_sim'),
-        'worlds',
-        LaunchConfiguration('world_name')
-    ])
+    # Path to world file -- changing to sonoma
+    # custom_world_file = PathJoinSubstitution([ get_package_share_directory('air_sim'),'worlds', LaunchConfiguration('world_name')])
+    custom_world_file = os.path.join(gps_wpf_dir, "worlds", world_name)
     
     rviz_file = os.path.join(rviz_dir, 'config', 'air.rviz')
     xacro_file = os.path.join(share_dir, 'urdf', 'sd_twizy.urdf.xacro')
@@ -58,6 +58,7 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_urdf}],
     )
 
+    # Launch the Gazebo server
     gazebo_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -71,7 +72,8 @@ def generate_launch_description():
             'world': custom_world_file,
         }.items(),
     )
-
+    
+    # Launch the Gazebo client
     gazebo_client = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -99,7 +101,7 @@ def generate_launch_description():
         output='screen',
     )
 
-    
+    # RViz2 node 
     rviz2_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -150,3 +152,7 @@ def generate_launch_description():
         static_tf_publisher_node,
         odom_tf_broadcaster_node,
     ])
+
+# ros2 run gazebo_ros spawn_entity.py -entity sd_twizy -topic robot_description -x 0 -y 0 -z 1.0
+# MAKEFLAGS="-j" colcon build --packages-ignore nav2_costmap_2d
+# MAKEFLAGS="-j2" colcon build --packages-select nav2_costmap_2d

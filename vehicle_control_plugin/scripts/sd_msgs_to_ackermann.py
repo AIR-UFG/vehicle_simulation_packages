@@ -19,15 +19,22 @@ class ConverterNode(Node):
             AckermannDriveStamped,
             '/sd_control/cmd_vel',
             10)
+        
+        # self.max_steer = 0.648228 # maximum wheels steering angle
+        
 
     def listener_callback(self, msg):
         ackermann_msg = AckermannDriveStamped()
         ackermann_msg.header.stamp = self.get_clock().now().to_msg()
-        ackermann_msg.drive.speed = msg.torque  # Map your custom torque to speed
-        ackermann_msg.drive.steering_angle = msg.steer * 3.141592653589793 / 180.0  # Assuming steer is in degrees and converting to radians
+        ackermann_msg.drive.speed = msg.vel_cmd  # Map your custom torque to speed | devemos continuar tratando speed como torque
+
+        # steer_ratio = max(-100.0, min(100.0, msg.steer))/100.0
+        # ackermann_msg.drive.steering_angle = steer_ratio * self.max_steer
+
+        # Here, steer is acting as an angular velocity setpoint
+        ackermann_msg.drive.steering_angle = msg.steer
 
         self.publisher.publish(ackermann_msg)
-        self.get_logger().info('Publishing: "%s"' % ackermann_msg)
 
 
 def main(args=None):

@@ -15,6 +15,7 @@ find_package(nav_msgs)
 find_package(geometry_msgs)
 find_package(ackermann_msgs REQUIRED)
 find_package(tf2_ros)
+find_package(sensor_msgs)
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
@@ -27,6 +28,7 @@ ament_target_dependencies(vehicle_control
   rclcpp
   gazebo_ros
   nav_msgs
+  sensor_msgs
   geometry_msgs
   ackermann_msgs
   tf2_ros

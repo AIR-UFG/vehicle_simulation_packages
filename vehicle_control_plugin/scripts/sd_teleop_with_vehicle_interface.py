@@ -2,27 +2,27 @@
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import Twist
 import sys, select, termios, tty
 
 class TeleopTwistKeyboard(Node):
     def __init__(self):
         super().__init__('teleop_twist_keyboard')
 
-        self.declare_parameter('velocity_increase_rate', 7.5)
+        self.declare_parameter('velocity_increase_rate', 1.0)
         self.velocity_increase_rate = self.get_parameter('velocity_increase_rate').get_parameter_value().double_value
 
-        self.declare_parameter('steering_increase_rate', 0.025)
+        self.declare_parameter('steering_increase_rate', 0.1)
         self.steering_increase_rate = self.get_parameter('steering_increase_rate').get_parameter_value().double_value
 
         self.declare_parameter('max_velocity', 1000.0)
         self.max_velocity = self.get_parameter('max_velocity').get_parameter_value().double_value
 
-        self.declare_parameter('max_steering_angle', 0.35)
+        self.declare_parameter('max_steering_angle', 100.0)
         self.max_steering_angle = self.get_parameter('max_steering_angle').get_parameter_value().double_value
 
-        self.publisher = self.create_publisher(TwistStamped, 'twist_cmd', 10)
-        self.twist = TwistStamped()
+        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.twist = Twist()
         self.current_velocity = 0.0
         self.current_steering_angle = 0.0
         self.settings = termios.tcgetattr(sys.stdin)
@@ -76,8 +76,8 @@ CTRL-C to quit
                 self.current_velocity = min(max(self.current_velocity, -self.max_velocity), self.max_velocity)
                 self.current_steering_angle = min(max(self.current_steering_angle, -self.max_steering_angle), self.max_steering_angle)
 
-                self.twist.twist.linear.x = self.current_velocity
-                self.twist.twist.angular.z = self.current_steering_angle
+                self.twist.linear.x = self.current_velocity
+                self.twist.angular.z = self.current_steering_angle
                 self.publisher.publish(self.twist)
 
                 print(f"Velocity: {self.current_velocity}, Steering Angle: {self.current_steering_angle}")
@@ -85,8 +85,8 @@ CTRL-C to quit
         except Exception as e:
             print(e)
         finally:
-            self.twist.twist.linear.x = 0.0
-            self.twist.twist.angular.z = 0.0
+            self.twist.linear.x = 0.0
+            self.twist.angular.z = 0.0
             self.publisher.publish(self.twist)
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
 

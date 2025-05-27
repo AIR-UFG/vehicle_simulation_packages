@@ -8,7 +8,7 @@
             <plugin name="gps_controller" filename="libgazebo_ros_gps_sensor.so">
                 <ros>
                     <!-- <namespace>/br</namespace> -->
-                    <remapping>gps_controller/out:=gps</remapping>
+                    <remapping>gps_controller/out:=/gps/fix</remapping>
                 </ros>
                 <frame_name>gps_link</frame_name>
             </plugin>
