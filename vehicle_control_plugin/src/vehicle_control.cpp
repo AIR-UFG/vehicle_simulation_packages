@@ -75,14 +75,14 @@ namespace vehicle_control_gazebo {
             std::bind(&VehiclePlugin::imu_callback, this, std::placeholders::_1)
           );
         
-        //Create a publisher to odom topic
-        odom_pub = node_->create_publisher<nav_msgs::msg::Odometry>("/odom", 1);
+        //Create a publisher to odom topic -- leaving the odometry to RTAB 
+        // odom_pub = node_->create_publisher<nav_msgs::msg::Odometry>("/odom", 1);
         vel_pub = node_->create_publisher<geometry_msgs::msg::TwistStamped>("/current_velocity", 10);
 
         // Get timer
-        timer_ = node_->create_wall_timer(
-            50ms, std::bind(&VehiclePlugin::getOdom, this)
-        );
+        // timer_ = node_->create_wall_timer(
+        //     50ms, std::bind(&VehiclePlugin::getOdom, this)
+        // );
 
         //std::cout << "drive_commmand_topic" << drive_command_topic << std::endl;
     }

@@ -23,8 +23,8 @@ def generate_launch_description():
     gps_wpf_dir = get_package_share_directory("nav2_gps_waypoint_follower_demo")
 
     # Launch argument for world file -- alterado para utilizar o sonoma raceway
-    #world_name = LaunchConfiguration('world_name', default='ufg.world')
-    world_name = "sonoma_raceway.world"
+    world_name = LaunchConfiguration('world_name', default='ufg.world')
+    # world_name = "sonoma_raceway.world"
     declare_world_name_arg = DeclareLaunchArgument(
         'world_name',
         default_value=world_name,
@@ -40,8 +40,8 @@ def generate_launch_description():
     )
 
     # Path to world file -- changing to sonoma
-    # custom_world_file = PathJoinSubstitution([ get_package_share_directory('air_sim'),'worlds', LaunchConfiguration('world_name')])
-    custom_world_file = os.path.join(gps_wpf_dir, "worlds", world_name)
+    custom_world_file = PathJoinSubstitution([ get_package_share_directory('air_sim'),'worlds', LaunchConfiguration('world_name')])
+    # custom_world_file = os.path.join(gps_wpf_dir, "worlds", world_name)
     
     rviz_file = os.path.join(rviz_dir, 'config', 'air.rviz')
     xacro_file = os.path.join(share_dir, 'urdf', 'sd_twizy.urdf.xacro')
@@ -117,27 +117,27 @@ def generate_launch_description():
     )
 
     # Add a static_transform_publisher for fixed transforms, for example between base_link and another frame
-    static_tf_publisher_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_transform_publisher',
-        arguments=[ PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[0]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[1]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[2]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[3]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[4]"]),
-                    PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[5]"]),
-                    'world', 'odom'],  # Example values for static transform
-        output='screen'
-    )
+    # static_tf_publisher_node = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='static_transform_publisher',
+    #     arguments=[ PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[0]"]),
+    #                 PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[1]"]),
+    #                 PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[2]"]),
+    #                 PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[3]"]),
+    #                 PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[4]"]),
+    #                 PythonExpression(["'", LaunchConfiguration('robot_pose'), "'.split(',')[5]"]),
+    #                 'world', 'odom'],  # Example values for static transform
+    #     output='screen'
+    # )
     
     # Add a node to publish the odometry transform from odom to base_link
-    odom_tf_broadcaster_node = Node(
-        package='air_sim',
-        executable='odom_tf_broadcaster.py',
-        name='odom_tf_broadcaster',
-        output='screen'
-    )
+    # odom_tf_broadcaster_node = Node(
+    #     package='air_sim',
+    #     executable='odom_tf_broadcaster.py',
+    #     name='odom_tf_broadcaster',
+    #     output='screen'
+    # )
     
     return LaunchDescription([
         rviz_arg,
@@ -149,8 +149,6 @@ def generate_launch_description():
         urdf_spawn_node,
         rviz2_node,
         sd_msgs_to_ackermann,
-        static_tf_publisher_node,
-        odom_tf_broadcaster_node,
     ])
 
 # ros2 run gazebo_ros spawn_entity.py -entity sd_twizy -topic robot_description -x 0 -y 0 -z 1.0
